@@ -1,0 +1,6 @@
+@Vulindlela.Clearance.Api_HostAddress = http://localhost:5223
+
+GET {{Vulindlela.Clearance.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

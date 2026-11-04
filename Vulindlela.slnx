@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Vulindlela.Booking.Api/Vulindlela.Booking.Api.csproj" />
+    <Project Path="src/Vulindlela.Clearance.Api/Vulindlela.Clearance.Api.csproj" />
+    <Project Path="src/Vulindlela.Portal/Vulindlela.Portal.csproj" />
+    <Project Path="src/Vulindlela.Shared/Vulindlela.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Vulindlela.Booking.Tests/Vulindlela.Booking.Tests.csproj" />
+  </Folder>
+</Solution>
