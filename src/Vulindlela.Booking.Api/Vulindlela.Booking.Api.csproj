@@ -14,5 +14,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Vulindlela.Shared\Vulindlela.Shared.csproj" />
   </ItemGroup>
-
 </Project>
