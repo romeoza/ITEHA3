@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Vulindlela.Booking.Api.Business;
 using Vulindlela.Booking.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/tmp/vulindlela-keys"));
+
 builder.WebHost.UseUrls("http://localhost:5101");
 
 builder.Services.AddDbContext<BookingDbContext>(o =>
@@ -17,6 +21,7 @@ builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<ICitizenRepository, CitizenRepository>();
 builder.Services.AddScoped<IAccessLogRepository, AccessLogRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddHttpClient<IClearanceClient, ClearanceClient>(c =>
 {
@@ -36,7 +41,6 @@ builder.Services.AddSingleton<IAuthorizationHandler, OwnsRecordHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 

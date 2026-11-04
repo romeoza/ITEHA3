@@ -38,18 +38,17 @@ public static class SeedData
             }
         }
         await db.SaveChangesAsync();
-
-        var auth = new AuthService(null!); // static password hashing helper usage
-        AddUser(db, "thabo", "8001015009087", "Thabo Mokoena", "Citizen", "Passw0rd!", auth);
-        AddUser(db, "naledi", "9002025009088", "Naledi Dlamini", "Citizen", "Passw0rd!", auth);
-        AddUser(db, "sipho", "8503035009089", "Sipho Nkosi", "Citizen", "Passw0rd!", auth);
-        AddUser(db, "official", "7004045009090", "Official Mahlangu", "Official", "Passw0rd!", auth);
+        
+        AddUser(db, "thabo", "8001015009087", "Thabo Mokoena", "Citizen", "Passw0rd!");
+        AddUser(db, "naledi", "9002025009088", "Naledi Dlamini", "Citizen", "Passw0rd!");
+        AddUser(db, "sipho", "8503035009089", "Sipho Nkosi", "Citizen", "Passw0rd!");
+        AddUser(db, "official", "7004045009090", "Official Mahlangu", "Official", "Passw0rd!");
         await db.SaveChangesAsync();
     }
 
-    private static void AddUser(BookingDbContext db, string user, string idNumber, string name, string role, string password, AuthService auth)
+    private static void AddUser(BookingDbContext db, string user, string idNumber, string name, string role, string password)
     {
-        var (hash, salt) = auth.CreateHash(password);
+        var (hash, salt) = PasswordHasher.Create(password);
         db.Citizens.Add(new Citizen
         {
             Username = user,

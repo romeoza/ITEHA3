@@ -1,0 +1,43 @@
+﻿@using Vulindlela.Shared
+@model List<(AppointmentDto A, ClearanceStatusDto? C, bool ClearanceAvailable)>
+<h2>My Appointments</h2>
+@if (TempData["BookingMessage"] is string m)
+{
+    <div class="alert alert-info">@m</div>
+}
+@if (TempData["ClearanceMessage"] is string cm)
+{
+    <div class="alert alert-info">@cm</div>
+}
+<table class="table">
+    <thead><tr><th>Service</th><th>Fee</th><th>Created</th><th>Clearance</th></tr></thead>
+    <tbody>
+        @foreach (var row in Model)
+        {
+            <tr>
+                <td>@row.A.ServiceType</td>
+                <td>R@(row.A.Fee)</td>
+                <td>@row.A.CreatedAtUtc.ToLocalTime()</td>
+                <td>
+                    @if (!row.ClearanceAvailable)
+                    {
+                        <span class="badge bg-warning">Document clearance unavailable — booking is confirmed</span>
+                    }
+                    else if (row.C is null)
+                    {
+                        <a asp-controller="Clearance" asp-action="Submit"
+                           asp-route-appointmentId="@row.A.Id" class="btn btn-sm btn-outline-primary">Submit documents</a>
+                    }
+                    else
+                    {
+                        <span>@row.C.Status</span>
+                        @if (row.C.MissingDocuments.Count > 0)
+                        {
+                            <div class="small text-danger">Missing: @string.Join(", ", row.C.MissingDocuments)</div>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

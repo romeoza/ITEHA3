@@ -1,0 +1,41 @@
+﻿@model List<Vulindlela.Shared.SlotDto>
+@{
+    var types = (List<string>)ViewBag.ServiceTypes;
+    var selected = (string)ViewBag.ServiceType;
+    var branchId = (Guid)ViewBag.BranchId;
+}
+<h2>Available slots</h2>
+
+<form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="branchId" value="@branchId" />
+    <div class="col-auto">
+        <label class="col-form-label">Service</label>
+    </div>
+    <div class="col-auto">
+        <select name="serviceType" class="form-select" onchange="this.form.submit()">
+            @foreach (var t in types)
+            {
+                <option value="@t" selected="@(t == selected)">@t</option>
+            }
+        </select>
+    </div>
+</form>
+
+<table class="table">
+    <thead><tr><th>When (local)</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.StartsAtUtc.ToLocalTime().ToString("ddd dd MMM yyyy HH:mm")</td>
+                <td class="text-end">
+                    <form method="post" asp-action="Book" class="d-inline">
+                        <input type="hidden" name="slotId" value="@s.Id" />
+                        <input type="hidden" name="serviceType" value="@selected" />
+                        <button class="btn btn-sm btn-success">Book</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

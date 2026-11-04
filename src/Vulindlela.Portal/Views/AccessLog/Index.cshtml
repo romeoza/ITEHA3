@@ -1,0 +1,15 @@
+﻿@model List<Vulindlela.Portal.Controllers.AccessLogController.AccessLogRow>
+@if (ViewBag.Degraded is string d)
+{
+    <div class="alert alert-warning">@d</div>
+}
+<h2>Who has read my record</h2>
+<table class="table">
+    <thead><tr><th>When</th><th>Reader</th><th>Role</th><th>Reason</th><th>Resource</th></tr></thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr><td>@r.At.ToLocalTime()</td><td>@r.Reader</td><td>@r.Role</td><td>@r.Reason</td><td>@r.Resource</td></tr>
+        }
+    </tbody>
+</table>

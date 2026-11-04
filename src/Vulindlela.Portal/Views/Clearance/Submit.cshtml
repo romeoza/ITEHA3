@@ -1,0 +1,22 @@
+﻿@model Vulindlela.Portal.Controllers.ClearanceController.SubmitViewModel
+<h2>Submit documents for clearance</h2>
+<p>Appointment: <strong>@Model.Appointment.ServiceType</strong> on @Model.Appointment.CreatedAtUtc.ToLocalTime()</p>
+
+<form method="post">
+    <input type="hidden" name="appointmentId" value="@Model.Appointment.Id" />
+    <input type="hidden" name="serviceType" value="@Model.Appointment.ServiceType" />
+
+    <p class="text-muted">
+        Tick the documents you are submitting. We will tell you before you travel if anything is missing.
+    </p>
+
+    @foreach (var doc in new[] { "Certified ID copy", "Passport photograph", "Parent ID copy" })
+    {
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="documentNames" value="@doc" id="doc-@doc.GetHashCode()" />
+            <label class="form-check-label" for="doc-@doc.GetHashCode()">@doc</label>
+        </div>
+    }
+
+    <button class="btn btn-primary mt-3">Submit</button>
+</form>
