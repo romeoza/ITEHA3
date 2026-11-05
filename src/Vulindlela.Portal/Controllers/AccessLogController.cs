@@ -1,22 +1,21 @@
-﻿using System.Net.Http.Json;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Vulindlela.Portal.Services;
 
 namespace Vulindlela.Portal.Controllers;
 
 [Authorize]
 public class AccessLogController : Controller
 {
-    private readonly IHttpClientFactory _http;
-    public AccessLogController(IHttpClientFactory http) => _http = http;
+    private readonly IBookingApiClient _bookings;
+    public AccessLogController(IBookingApiClient bookings) => _bookings = bookings;
 
     public async Task<IActionResult> Index()
     {
-        var client = _http.CreateClient("booking");
         try
         {
-            var data = await client.GetFromJsonAsync<List<AccessLogRow>>("/api/access-log/mine");
-            return View(data ?? new());
+            var data = await _bookings.AccessLogAsync();
+            return View(data);
         }
         catch
         {

@@ -16,6 +16,10 @@ public record AppointmentDto(
     Guid Id, Guid SlotId, Guid BranchId, string ServiceType,
     decimal Fee, DateTime CreatedAtUtc, string Status);
 
+public record OfficialAppointmentDto(
+    Guid Id, string CitizenName, string BranchName, string ServiceType,
+    decimal Fee, DateTime StartsAtUtc);
+
 public record AppointmentCreatedNotification(
     Guid AppointmentId, Guid CitizenId, string ServiceType);
 

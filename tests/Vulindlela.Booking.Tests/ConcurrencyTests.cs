@@ -18,8 +18,27 @@ public class ConcurrencyTests : IClassFixture<SqliteFixture>
     public async Task Exactly_one_appointment_survives_concurrent_bookings(int attempts)
     {
         Guid slotId;
+        var citizenIds = new List<Guid>();
         using (var ctx = _fixture.NewContext())
         {
+            // Each concurrent request is a different citizen, so the one-upcoming-per-service rule
+            // does not interfere: only the slot guard is under test here.
+            for (int i = 0; i < attempts; i++)
+            {
+                var citizen = new Citizen
+                {
+                    Username = "conc-" + Guid.NewGuid().ToString("N"),
+                    IdNumber = Guid.NewGuid().ToString("N")[..13],
+                    FullName = "Concurrent Citizen",
+                    Role = "Citizen",
+                    PasswordHash = "x",
+                    PasswordSalt = "x"
+                };
+                ctx.Citizens.Add(citizen);
+                citizenIds.Add(citizen.Id);
+            }
+            await ctx.SaveChangesAsync();
+
             var branch = new Branch
             {
                 Code = "TEST-" + Guid.NewGuid().ToString("N")[..6],
@@ -38,11 +57,11 @@ public class ConcurrencyTests : IClassFixture<SqliteFixture>
             slotId = slot.Id;
         }
 
-        var tasks = Enumerable.Range(0, attempts).Select(_ => Task.Run(async () =>
+        var tasks = Enumerable.Range(0, attempts).Select(i => Task.Run(async () =>
         {
             using var ctx = _fixture.NewContext();
             var svc = TestFactory.BuildService(ctx);
-            return await svc.BookAsync(_fixture.CitizenId,
+            return await svc.BookAsync(citizenIds[i],
                 new BookRequest(slotId, ServiceTypes.IdCollection), default);
         }));
         var results = await Task.WhenAll(tasks);

@@ -19,12 +19,14 @@ public class AccountController : Controller
         var result = await _bookings.SignInAsync(username, password);
         if (result is null) { ViewBag.Error = "Invalid credentials."; return View(); }
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, result.CitizenId.ToString()),
-            new Claim(ClaimTypes.Name, result.Username),
-            new Claim(ClaimTypes.Role, result.Role)
+            new(ClaimTypes.NameIdentifier, result.CitizenId.ToString()),
+            new(ClaimTypes.Name, result.Username),
+            new(ClaimTypes.Role, result.Role)
         };
+        if (!string.IsNullOrEmpty(result.BookingCookie))
+            claims.Add(new Claim(CookieForwardingHandler.BookingCookieClaim, result.BookingCookie));
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
         return RedirectToAction("Index", "MyAppointments");

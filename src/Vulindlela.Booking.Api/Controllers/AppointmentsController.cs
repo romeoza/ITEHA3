@@ -37,4 +37,9 @@ public class AppointmentsController : ControllerBase
     [HttpGet("mine")]
     public async Task<IActionResult> Mine(CancellationToken ct) =>
         Ok(await _bookings.ListMineAsync(CallerId, ct));
+
+    [HttpGet("all")]
+    [Authorize(Roles = "Official")]
+    public async Task<IActionResult> All(CancellationToken ct) =>
+        Ok(await _bookings.ListAllForOfficialAsync(CallerId, CallerRole, ct));
 }

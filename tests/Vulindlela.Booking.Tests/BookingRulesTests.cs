@@ -50,8 +50,45 @@ public class BookingRulesTests : IClassFixture<SqliteFixture>
 
         var svc = TestFactory.BuildService(ctx);
         var first = await svc.BookAsync(_fixture.CitizenId, new BookRequest(slot.Id, ServiceTypes.IdCollection), default);
-        var second = await svc.BookAsync(_fixture.CitizenId, new BookRequest(slot.Id, ServiceTypes.IdCollection), default);
+        var second = await svc.BookAsync(await NewCitizenAsync(ctx), new BookRequest(slot.Id, ServiceTypes.IdCollection), default);
         Assert.Equal(BookingStatus.Booked, first.Status);
         Assert.Equal(BookingStatus.SlotTaken, second.Status);
+    }
+
+    [Fact]
+    public async Task Citizen_cannot_hold_two_upcoming_appointments_for_the_same_service()
+    {
+        using var ctx = _fixture.NewContext();
+        var branch = new Branch { Code = "TEST-C", Name = "Test C" };
+        ctx.Branches.Add(branch);
+        await ctx.SaveChangesAsync();
+
+        var slotA = new Slot { BranchId = branch.Id, StartsAtUtc = DateTime.UtcNow.AddDays(4) };
+        var slotB = new Slot { BranchId = branch.Id, StartsAtUtc = DateTime.UtcNow.AddDays(5) };
+        ctx.Slots.AddRange(slotA, slotB);
+        await ctx.SaveChangesAsync();
+
+        var citizen = await NewCitizenAsync(ctx);
+        var svc = TestFactory.BuildService(ctx);
+        var first = await svc.BookAsync(citizen, new BookRequest(slotA.Id, ServiceTypes.Passport), default);
+        var second = await svc.BookAsync(citizen, new BookRequest(slotB.Id, ServiceTypes.Passport), default);
+        Assert.Equal(BookingStatus.Booked, first.Status);
+        Assert.Equal(BookingStatus.Invalid, second.Status);
+    }
+
+    private static async Task<Guid> NewCitizenAsync(Vulindlela.Booking.Api.Data.BookingDbContext ctx)
+    {
+        var citizen = new Citizen
+        {
+            Username = "rule-" + Guid.NewGuid().ToString("N"),
+            IdNumber = Guid.NewGuid().ToString("N")[..13],
+            FullName = "Rule Citizen",
+            Role = "Citizen",
+            PasswordHash = "x",
+            PasswordSalt = "x"
+        };
+        ctx.Citizens.Add(citizen);
+        await ctx.SaveChangesAsync();
+        return citizen.Id;
     }
 }

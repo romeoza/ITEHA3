@@ -23,7 +23,7 @@
                     {
                         <span class="badge bg-warning">Document clearance unavailable — booking is confirmed</span>
                     }
-                    else if (row.C is null)
+                    else if (row.C is null || row.C.Status == "NotSubmitted")
                     {
                         <a asp-controller="Clearance" asp-action="Submit"
                            asp-route-appointmentId="@row.A.Id" class="btn btn-sm btn-outline-primary">Submit documents</a>

@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
         };
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-        return Ok(new { username = citizen.Username, role = citizen.Role });
+        return Ok(new { citizenId = citizen.Id, username = citizen.Username, role = citizen.Role });
     }
 
     [HttpPost("signout")]

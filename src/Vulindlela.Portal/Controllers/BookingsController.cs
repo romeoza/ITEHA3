@@ -26,10 +26,8 @@ public class BookingsController : Controller
     public async Task<IActionResult> Book(Guid slotId, string serviceType)
     {
         var id = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value;
-        var ok = await _bookings.BookAsync(Guid.Parse(id), slotId, serviceType);
-        TempData["BookingMessage"] = ok
-            ? "Booking confirmed."
-            : "That slot was just taken. Please choose another.";
+        var error = await _bookings.BookAsync(Guid.Parse(id), slotId, serviceType);
+        TempData["BookingMessage"] = error is null ? "Booking confirmed." : error;
         return RedirectToAction("Index", "MyAppointments");
     }
 }

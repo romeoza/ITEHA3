@@ -10,8 +10,11 @@ builder.Services.AddDataProtection()
 builder.WebHost.UseUrls("http://localhost:5100");
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<CookieForwardingHandler>();
 builder.Services.AddHttpClient<IBookingApiClient, BookingApiClient>(c =>
-    c.BaseAddress = new Uri(builder.Configuration["Services:Booking"] ?? "http://localhost:5101"));
+        c.BaseAddress = new Uri(builder.Configuration["Services:Booking"] ?? "http://localhost:5101"))
+    .AddHttpMessageHandler<CookieForwardingHandler>();
 builder.Services.AddHttpClient<IClearanceApiClient, ClearanceApiClient>(c =>
 {
     c.BaseAddress = new Uri(builder.Configuration["Services:Clearance"] ?? "http://localhost:5102");

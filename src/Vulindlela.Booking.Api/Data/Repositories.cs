@@ -14,6 +14,8 @@ public interface IAppointmentRepository
 {
     Task<Appointment?> GetAsync(Guid id, CancellationToken ct);
     Task<List<Appointment>> ListForCitizenAsync(Guid citizenId, CancellationToken ct);
+    Task<List<Appointment>> ListAllAsync(CancellationToken ct);
+    Task<bool> HasUpcomingForServiceAsync(Guid citizenId, string serviceType, DateTime nowUtc, CancellationToken ct);
     Task AddAsync(Appointment appointment, CancellationToken ct);
     Task SaveAsync(CancellationToken ct);
 }
@@ -52,6 +54,12 @@ public class AppointmentRepository : IAppointmentRepository
     public Task<List<Appointment>> ListForCitizenAsync(Guid citizenId, CancellationToken ct) =>
         _db.Appointments.Include(a => a.Slot)
             .Where(a => a.CitizenId == citizenId).OrderByDescending(a => a.CreatedAtUtc).ToListAsync(ct);
+    public Task<List<Appointment>> ListAllAsync(CancellationToken ct) =>
+        _db.Appointments.Include(a => a.Slot).ThenInclude(s => s.Branch).Include(a => a.Citizen)
+            .OrderBy(a => a.Slot.StartsAtUtc).ToListAsync(ct);
+    public Task<bool> HasUpcomingForServiceAsync(Guid citizenId, string serviceType, DateTime nowUtc, CancellationToken ct) =>
+        _db.Appointments.AnyAsync(a => a.CitizenId == citizenId && a.ServiceType == serviceType
+            && a.Slot.StartsAtUtc >= nowUtc, ct);
     public async Task AddAsync(Appointment appointment, CancellationToken ct) =>
         await _db.Appointments.AddAsync(appointment, ct);
     public Task SaveAsync(CancellationToken ct) => _db.SaveChangesAsync(ct);

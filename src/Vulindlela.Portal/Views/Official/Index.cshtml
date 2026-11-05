@@ -1,0 +1,42 @@
+@using Vulindlela.Shared
+@model List<OfficialAppointmentDto>
+@{
+    var branches = (List<BranchDto>)ViewBag.Branches;
+}
+<h2>Official overview</h2>
+@if (ViewBag.Degraded is string d)
+{
+    <div class="alert alert-warning">@d</div>
+}
+
+<h4>Branches</h4>
+<table class="table">
+    <thead><tr><th>Code</th><th>Branch</th><th>Bookings</th></tr></thead>
+    <tbody>
+        @foreach (var b in branches)
+        {
+            <tr>
+                <td>@b.Code</td>
+                <td>@b.Name</td>
+                <td>@Model.Count(a => a.BranchName == b.Name)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>All bookings</h4>
+<table class="table">
+    <thead><tr><th>Starts (local)</th><th>Branch</th><th>Citizen</th><th>Service</th><th>Fee</th></tr></thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.StartsAtUtc.ToLocalTime().ToString("ddd dd MMM yyyy HH:mm")</td>
+                <td>@a.BranchName</td>
+                <td>@a.CitizenName</td>
+                <td>@a.ServiceType</td>
+                <td>R @a.Fee.ToString("0.00")</td>
+            </tr>
+        }
+    </tbody>
+</table>

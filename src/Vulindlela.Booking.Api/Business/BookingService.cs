@@ -19,6 +19,7 @@ public interface IBookingService
     Task<BookingResult> BookAsync(Guid citizenId, BookRequest request, CancellationToken ct);
     Task<AppointmentDto?> GetAsync(Guid citizenId, Guid appointmentId, string role, CancellationToken ct);
     Task<List<AppointmentDto>> ListMineAsync(Guid citizenId, CancellationToken ct);
+    Task<List<OfficialAppointmentDto>> ListAllForOfficialAsync(Guid readerId, string role, CancellationToken ct);
 }
 
 public class BookingService : IBookingService
@@ -42,6 +43,12 @@ public class BookingService : IBookingService
 
         var slot = await _slots.GetAsync(request.SlotId, ct);
         if (slot is null) return BookingResult.Invalid("Slot not found.");
+
+        // Business rule: one live appointment per service type. Once it has passed, the citizen may book again.
+        // Note: this is a check-then-act. Two simultaneous requests from the same citizen could both pass it.
+        if (await _appointments.HasUpcomingForServiceAsync(citizenId, request.ServiceType, DateTime.UtcNow, ct))
+            return BookingResult.Invalid(
+                $"You already have an upcoming {request.ServiceType} appointment. You can book again once it has passed.");
 
         // ADR 0002: no pre-check. The unique index on SlotId is the guard.
         var appointment = new Appointment
@@ -90,6 +97,30 @@ public class BookingService : IBookingService
         var list = await _appointments.ListForCitizenAsync(citizenId, ct);
         return list.Select(a => new AppointmentDto(a.Id, a.SlotId, a.Slot.BranchId,
             a.ServiceType, a.Fee, a.CreatedAtUtc, "Booked")).ToList();
+    }
+
+    public async Task<List<OfficialAppointmentDto>> ListAllForOfficialAsync(Guid readerId, string role, CancellationToken ct)
+    {
+        if (role != "Official") return new();
+
+        var list = await _appointments.ListAllAsync(ct);
+
+        // Every record an official reads is logged against the citizen it belongs to.
+        foreach (var a in list)
+        {
+            await _logs.AddAsync(new AccessLog
+            {
+                SubjectCitizenId = a.CitizenId,
+                ReaderCitizenId = readerId,
+                ReaderRole = role,
+                Reason = "Official overview of bookings",
+                Resource = $"appointment:{a.Id}"
+            }, ct);
+        }
+        await _logs.SaveAsync(ct);
+
+        return list.Select(a => new OfficialAppointmentDto(
+            a.Id, a.Citizen.FullName, a.Slot.Branch.Name, a.ServiceType, a.Fee, a.Slot.StartsAtUtc)).ToList();
     }
 
     private async Task SafeNotifyClearanceAsync(Appointment appt, CancellationToken ct)
